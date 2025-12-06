@@ -247,7 +247,7 @@ async function downloadSubmissionFile(fileId, teacherName) {
 
     try {
         const token = getToken();
-        const response = await fetch(`/api/files/${fileId}`, {
+        const response = await fetch(`${API_BASE_URL}/files/${fileId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
