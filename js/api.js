@@ -584,13 +584,30 @@ function showSuccess(message) {
 // 格式化日期时间
 function formatDateTime(dateTimeString) {
     if (!dateTimeString) return '-';
-    const date = new Date(dateTimeString);
+    
+    // 处理 ISO 8601 格式的时间字符串（如 "2023-01-01T00:00:00Z" 或 "2023-01-01T00:00:00+00:00"）
+    let date;
+    try {
+        date = new Date(dateTimeString);
+        // 检查日期是否有效
+        if (isNaN(date.getTime())) {
+            console.warn('无效的日期时间格式:', dateTimeString);
+            return dateTimeString; // 如果无法解析，返回原始字符串
+        }
+    } catch (error) {
+        console.error('日期时间解析错误:', error, dateTimeString);
+        return dateTimeString; // 如果解析失败，返回原始字符串
+    }
+    
+    // 格式化为中文本地时间格式
     return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',
         day: '2-digit',
         hour: '2-digit',
-        minute: '2-digit'
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: false // 使用 24 小时制
     });
 }
 
