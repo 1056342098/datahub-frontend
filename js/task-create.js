@@ -19,6 +19,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (isEditMode) {
         document.getElementById('pageTitle').textContent = '编辑任务';
         document.getElementById('submitBtn').textContent = '更新任务';
+        
+        // 编辑模式下，模板文件不是必填项
+        const templateFileInput = document.getElementById('template_file');
+        const templateFileLabel = document.getElementById('template_file_label');
+        const templateFileHint = document.getElementById('template_file_hint');
+        
+        templateFileInput.removeAttribute('required');
+        templateFileLabel.removeAttribute('data-required');
+        templateFileHint.textContent = '如需更新模板，请选择新文件上传（可选）';
     }
 
     // 加载学院列表
@@ -97,14 +106,105 @@ async function loadTaskData() {
             const task = response.data;
             document.getElementById('task_name').value = task.task_name;
             document.getElementById('description').value = task.description || '';
-            // 无法预填本地文件输入，仅保留原有模板文件
             document.getElementById('dept_id').value = task.department.dept_id;
             document.getElementById('deadline').value = formatDateTimeLocal(task.deadline);
+            
+            // 在编辑模式下显示当前模板文件ID
+            if (task.template_file_id) {
+                displayCurrentTemplateFile(task.template_file_id);
+            }
         } else {
             showError('加载任务数据失败');
         }
     } catch (error) {
         showError(error.message || '加载任务数据失败');
+    }
+}
+
+// 显示当前模板文件信息（编辑模式）
+function displayCurrentTemplateFile(fileId) {
+    const templateFileGroup = document.querySelector('#template_file').closest('.form-group');
+    const existingInfo = document.getElementById('currentTemplateInfo');
+    
+    if (existingInfo) {
+        existingInfo.remove();
+    }
+    
+    const infoDiv = document.createElement('div');
+    infoDiv.id = 'currentTemplateInfo';
+    infoDiv.style.cssText = 'margin-top: 10px; padding: 15px; background: rgba(0, 198, 255, 0.05); border-radius: 10px; border-left: 3px solid #00c6ff;';
+    infoDiv.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px;">
+                <div style="font-size: 12px; color: #888; margin-bottom: 5px;">当前模板文件ID</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="text" value="${fileId}" readonly 
+                           style="flex: 1; padding: 10px 14px; background: rgba(255, 255, 255, 0.03); 
+                                  border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 8px; 
+                                  color: #fff; font-size: 14px; font-weight: 500;">
+                    <button type="button" onclick="downloadCurrentTemplate(${fileId})" 
+                            style="padding: 10px 18px; border: none; border-radius: 8px; 
+                                   font-size: 13px; font-weight: 600; cursor: pointer; 
+                                   background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%); 
+                                   color: white; transition: all 0.3s ease; white-space: nowrap;">
+                        <i class="fas fa-download"></i> 下载当前模板
+                    </button>
+                </div>
+            </div>
+            <div style="font-size: 12px; color: #888; line-height: 1.5;">
+                <i class="fas fa-info-circle" style="color: #00c6ff;"></i>
+                如需更新模板，请选择新文件上传
+            </div>
+        </div>
+    `;
+    
+    templateFileGroup.appendChild(infoDiv);
+}
+
+// 下载当前模板文件（编辑模式）
+async function downloadCurrentTemplate(fileId) {
+    try {
+        const token = getToken();
+        const response = await fetch(`${API_BASE_URL}/files/${fileId}`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            const errorCode = errorData.error?.code;
+            const errorMessage = getErrorMessage(errorCode, errorData.error?.message || '下载文件失败');
+            showError(errorMessage);
+            return;
+        }
+
+        // 获取文件名
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = 'template.xlsx';
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="?(.+?)"?$/);
+            if (filenameMatch) {
+                filename = filenameMatch[1];
+            }
+        }
+
+        // 创建下载链接
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        showSuccess('模板文件下载成功');
+    } catch (error) {
+        console.error('下载文件错误:', error);
+        showError(error.message || '下载文件失败');
     }
 }
 
