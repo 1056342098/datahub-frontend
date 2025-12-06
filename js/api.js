@@ -585,21 +585,27 @@ function showSuccess(message) {
 function formatDateTime(dateTimeString) {
     if (!dateTimeString) return '-';
     
-    // 处理 ISO 8601 格式的时间字符串（如 "2023-01-01T00:00:00Z" 或 "2023-01-01T00:00:00+00:00"）
+    // 处理 ISO 8601 格式的时间字符串
+    // 格式示例: "2025-12-06T14:51:55.760461Z" (包含微秒的 UTC 时间)
+    // 或 "2023-01-01T00:00:00Z" (标准格式)
     let date;
     try {
+        // JavaScript Date 对象可以自动解析 ISO 8601 格式，包括带微秒的格式
+        // 格式: YYYY-MM-DDTHH:mm:ss.sssZ 或 YYYY-MM-DDTHH:mm:ssZ
         date = new Date(dateTimeString);
+        
         // 检查日期是否有效
         if (isNaN(date.getTime())) {
             console.warn('无效的日期时间格式:', dateTimeString);
-            return dateTimeString; // 如果无法解析，返回原始字符串
+            return String(dateTimeString); // 如果无法解析，返回原始字符串
         }
     } catch (error) {
         console.error('日期时间解析错误:', error, dateTimeString);
-        return dateTimeString; // 如果解析失败，返回原始字符串
+        return String(dateTimeString); // 如果解析失败，返回原始字符串
     }
     
     // 格式化为中文本地时间格式
+    // toLocaleString 会自动将 UTC 时间转换为本地时区
     return date.toLocaleString('zh-CN', {
         year: 'numeric',
         month: '2-digit',

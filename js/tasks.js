@@ -236,29 +236,20 @@ function populateModalCollegeSelect(selectElement, departments = []) {
     }
 }
 
-// 更新统计信息（需要从所有任务中计算，当前只显示当前页的统计）
+    // 更新统计信息（需要从所有任务中计算，当前只显示当前页的统计）
 function updateStats(tasks) {
     // 注意：这里只统计当前页的任务，如果需要全局统计，需要额外API调用
     const total = tasks.length;
     const ongoing = tasks.filter(task => task.status === 'Ongoing').length;
     const finished = tasks.filter(task => task.status === 'Finished').length;
     
-    // 计算逾期任务
-    const today = new Date();
-    const overdue = tasks.filter(task => {
-        const deadline = new Date(task.deadline);
-        return deadline < today && task.status !== 'Finished';
-    }).length;
-    
     const totalEl = document.getElementById('totalTasks');
     const ongoingEl = document.getElementById('ongoingTasks');
     const finishedEl = document.getElementById('finishedTasks');
-    const overdueEl = document.getElementById('overdueTasks');
     
     if (totalEl) totalEl.textContent = total;
     if (ongoingEl) ongoingEl.textContent = ongoing;
     if (finishedEl) finishedEl.textContent = finished;
-    if (overdueEl) overdueEl.textContent = overdue;
 }
 
 // 显示分页
