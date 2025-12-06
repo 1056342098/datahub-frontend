@@ -146,12 +146,10 @@ function updateStats(teachers) {
     const totalEl = document.getElementById('totalTeachers');
     const submittedEl = document.getElementById('submittedTeachers');
     const pendingEl = document.getElementById('pendingTeachers');
-    const lateEl = document.getElementById('lateTeachers');
     
     if (totalEl) totalEl.textContent = total;
     if (submittedEl) submittedEl.textContent = submitted;
     if (pendingEl) pendingEl.textContent = pending;
-    if (lateEl) lateEl.textContent = '0'; // 后端暂不支持逾期统计
 }
 
 // 显示分页
