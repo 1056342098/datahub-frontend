@@ -377,7 +377,199 @@ function showError(message) {
     showErrorModal(message);
 }
 
-// 显示成功消息
+// 创建成功弹窗容器（如果不存在）
+function ensureSuccessModalContainer() {
+    let modalContainer = document.getElementById('successModalContainer');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'successModalContainer';
+        modalContainer.innerHTML = `
+            <div class="success-modal-overlay" id="successModalOverlay">
+                <div class="success-modal">
+                    <div class="success-modal-header">
+                        <i class="fas fa-check-circle"></i>
+                        <h3>操作成功</h3>
+                    </div>
+                    <div class="success-modal-body">
+                        <p id="successModalMessage"></p>
+                    </div>
+                    <div class="success-modal-footer">
+                        <button class="success-modal-btn" id="successModalCloseBtn">确定</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalContainer);
+        
+        // 添加样式
+        if (!document.getElementById('successModalStyles')) {
+            const style = document.createElement('style');
+            style.id = 'successModalStyles';
+            style.textContent = `
+                .success-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(4px);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    animation: successModalFadeIn 0.3s ease;
+                }
+                
+                .success-modal-overlay.show {
+                    display: flex;
+                }
+                
+                @keyframes successModalFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                @keyframes successModalSlideUp {
+                    from {
+                        transform: translateY(50px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+                
+                .success-modal {
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border-radius: 16px;
+                    padding: 0;
+                    max-width: 450px;
+                    width: 90%;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    animation: successModalSlideUp 0.3s ease;
+                    overflow: hidden;
+                }
+                
+                .success-modal-header {
+                    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+                    padding: 20px 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: white;
+                }
+                
+                .success-modal-header i {
+                    font-size: 24px;
+                }
+                
+                .success-modal-header h3 {
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+                
+                .success-modal-body {
+                    padding: 24px;
+                    color: #e0e0e0;
+                    min-height: 60px;
+                }
+                
+                .success-modal-body p {
+                    margin: 0;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    word-wrap: break-word;
+                }
+                
+                .success-modal-footer {
+                    padding: 16px 24px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    display: flex;
+                    justify-content: flex-end;
+                }
+                
+                .success-modal-btn {
+                    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+                    color: white;
+                    border: none;
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .success-modal-btn:hover {
+                    background: linear-gradient(135deg, #00b4e6 0%, #0066cc 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+                }
+                
+                .success-modal-btn:active {
+                    transform: translateY(0);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // 绑定关闭事件
+        const overlay = document.getElementById('successModalOverlay');
+        const closeBtn = document.getElementById('successModalCloseBtn');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                hideSuccessModal();
+            });
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    hideSuccessModal();
+                }
+            });
+        }
+        
+        // ESC键关闭
+        document.addEventListener('keydown', (e) => {
+            const overlayEl = document.getElementById('successModalOverlay');
+            if (e.key === 'Escape' && overlayEl && overlayEl.classList.contains('show')) {
+                hideSuccessModal();
+            }
+        });
+    }
+    return modalContainer;
+}
+
+// 显示成功弹窗
+function showSuccessModal(message) {
+    ensureSuccessModalContainer();
+    const overlay = document.getElementById('successModalOverlay');
+    const messageEl = document.getElementById('successModalMessage');
+    
+    if (messageEl) {
+        messageEl.textContent = message || '操作成功';
+    }
+    
+    if (overlay) {
+        overlay.classList.add('show');
+    }
+}
+
+// 隐藏成功弹窗
+function hideSuccessModal() {
+    const overlay = document.getElementById('successModalOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
+}
+
+// 显示成功消息（保留向后兼容，但使用弹窗）
 function showSuccess(message) {
     const successDiv = document.getElementById('successMessage');
     if (successDiv) {

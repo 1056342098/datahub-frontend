@@ -199,7 +199,7 @@ async function remindTeachers() {
     try {
         const response = await apiPost(`/tasks/${taskId}/remind_teachers`, {});
         if (response.success) {
-            showSuccess('提醒发送成功');
+            showSuccessModal('提醒发送成功');
         } else {
             showError('提醒发送失败');
         }
@@ -211,28 +211,56 @@ async function remindTeachers() {
 // 导出提交
 async function exportSubmissions() {
     try {
+        // 第一步：调用导出API获取file_id
+        const exportResponse = await apiPost(`/tasks/${taskId}/submissions/export`, {});
+        
+        if (!exportResponse.success || !exportResponse.data?.file_id) {
+            showError('导出失败：未获取到文件ID');
+            return;
+        }
+
+        const fileId = exportResponse.data.file_id;
+        
+        // 第二步：使用file_id下载实际文件
         const token = getToken();
-        const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/submissions/export`, {
-            method: 'POST',
+        const fileResponse = await fetch(`${API_BASE_URL}/files/${fileId}`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
         });
 
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `task_${taskId}_submissions.xlsx`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            document.body.removeChild(a);
-            showSuccess('导出成功');
-        } else {
-            showError('导出失败');
+        if (!fileResponse.ok) {
+            throw new Error('下载文件失败');
         }
+
+        const blob = await fileResponse.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        // 尝试从响应头获取文件名
+        const disposition = fileResponse.headers.get('Content-Disposition') || '';
+        let fileName = `task_${taskId}_submissions.xlsx`;
+
+        const utfMatch = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+        const asciiMatch = disposition.match(/filename="?([^"]+)"?/i);
+        if (utfMatch && utfMatch[1]) {
+            fileName = utfMatch[1];
+        } else if (asciiMatch && asciiMatch[1]) {
+            fileName = asciiMatch[1];
+        }
+        try {
+            fileName = decodeURIComponent(fileName);
+        } catch (e) {
+            // ignore decode error and use raw value
+        }
+
+        link.href = downloadUrl;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(downloadUrl);
+        showSuccess('导出成功');
     } catch (error) {
         showError(error.message || '导出失败');
     }
