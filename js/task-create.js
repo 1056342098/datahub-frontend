@@ -222,7 +222,8 @@ async function handleSubmit(e) {
 
     // 获取并转换 deadline 格式
     const deadlineInput = document.getElementById('deadline').value;
-    const deadline = formatDateTimeToISO(deadlineInput);
+    // const deadline = formatDateTimeToISO(deadlineInput);
+    const deadline = deadlineInput + ':00.000Z'; // 补全秒部分
     
     if (!deadline) {
         showError('请选择有效的截止日期');
