@@ -302,7 +302,7 @@ async function deleteTask(taskId) {
     try {
         const response = await apiDelete(`/tasks/${taskId}`);
         if (response.success) {
-            showSuccess('任务删除成功');
+            showSuccessModal('任务已删除');
             loadTasks();
         } else {
             showError('删除任务失败');
