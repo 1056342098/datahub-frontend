@@ -592,7 +592,13 @@ function formatDateTime(dateTimeString) {
     try {
         // JavaScript Date 对象可以自动解析 ISO 8601 格式，包括带微秒的格式
         // 格式: YYYY-MM-DDTHH:mm:ss.sssZ 或 YYYY-MM-DDTHH:mm:ssZ
-        date = new Date(dateTimeString);
+        if (dateTimeString.endsWith('Z')) {
+         // 这种做法假设后端给的时间数字本身就是北京时间
+         // 警告：这是一种为了修补错误数据的 Hack 方式
+            date = new Date(dateTimeString.slice(0, -1)); 
+        } else {
+            date = new Date(dateTimeString);
+        }
         
         // 检查日期是否有效
         if (isNaN(date.getTime())) {
