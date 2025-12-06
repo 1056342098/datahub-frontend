@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>个人信息 - DataHub 科研数据管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 导航栏 */
+        .navbar {
+            background: rgba(25, 25, 35, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 15px 30px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-title i {
+            font-size: 26px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        #userInfo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 14px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.3s ease;
+        }
+
+        #userInfo:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        #userInfo i {
+            color: #00c6ff;
+        }
+
+        /* 主容器 */
+        .main-container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 30px;
+        }
+
+        /* 面包屑导航 */
+        .breadcrumbs {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .breadcrumbs a {
+            color: #00c6ff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.3s ease;
+        }
+
+        .breadcrumbs a:hover {
+            color: #00b4e6;
+            text-decoration: underline;
+        }
+
+        .breadcrumbs span {
+            color: #666;
+        }
+
+        /* 卡片样式 */
+        .card {
+            background: rgba(25, 25, 35, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 25px;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff, #00c6ff);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .card h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: #fff;
+        }
+
+        .card h2 i {
+            color: #00c6ff;
+            font-size: 18px;
+        }
+
+        /* 按钮样式 */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #00b4e6 0%, #0066cc 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 114, 255, 0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.08);
+            color: #e0e0e0;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 信息网格 */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .info-item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.3s ease, border-color 0.3s ease;
+        }
+
+        .info-item:hover {
+            transform: translateY(-3px);
+            border-color: rgba(0, 198, 255, 0.1);
+        }
+
+        .info-item span {
+            font-size: 13px;
+            color: #888;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .info-item p {
+            font-size: 18px;
+            font-weight: 600;
+            color: #fff;
+        }
+
+        /* 状态标签 */
+        .status-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-guest {
+            background: rgba(255, 193, 7, 0.15);
+            color: #ffc107;
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+
+        .status-assistant {
+            background: rgba(46, 213, 115, 0.15);
+            color: #2ed573;
+            border: 1px solid rgba(46, 213, 115, 0.3);
+        }
+
+        .status-administrator {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+        }
+
+        /* 表单样式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            transition: color 0.3s;
+            z-index: 1;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 14px 14px 48px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #00c6ff;
+            box-shadow: 0 0 0 2px rgba(0, 198, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input:focus + i {
+            color: #00c6ff;
+        }
+
+        input::placeholder {
+            color: #666;
+        }
+
+        .hint {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 20px;
+            line-height: 1.6;
+            padding: 12px 16px;
+            background: rgba(0, 114, 255, 0.05);
+            border-radius: 10px;
+            border-left: 3px solid #0072ff;
+        }
+
+        /* 认证横幅 */
+        .verified-banner {
+            background: rgba(46, 213, 115, 0.1);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            border-radius: 10px;
+            padding: 15px 20px;
+            margin-top: 20px;
+            color: #2ed573;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .verified-banner i {
+            font-size: 18px;
+        }
+
+        /* 消息提示 */
+        .error-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 71, 87, 0.1);
+            border: 1px solid rgba(255, 71, 87, 0.3);
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: #ff6b6b;
+            font-size: 14px;
+            max-width: 400px;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        .success-message {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(46, 213, 115, 0.1);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            border-radius: 10px;
+            padding: 15px 20px;
+            color: #2ed573;
+            font-size: 14px;
+            max-width: 400px;
+            display: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        /* 隐藏类 */
+        .hidden {
+            display: none !important;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .nav-user {
+                width: 100%;
+                justify-content: space-between;
+            }
+            
+            .main-container {
+                padding: 0 20px;
+            }
+            
+            .card {
+                padding: 25px 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .navbar {
+                padding: 15px;
+            }
+            
+            .card {
+                padding: 20px 15px;
+            }
+            
+            .form-group {
+                margin-bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 导航栏 -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1 class="nav-title">
+                <i class="fas fa-database"></i>
+                DataHub
+            </h1>
+            <div class="nav-user">
+                <div id="userInfo">
+                    <i class="fas fa-user-circle"></i>
+                    <span>个人中心</span>
+                </div>
+                <button id="logoutBtn" class="btn btn-secondary">
+                    <i class="fas fa-sign-out-alt"></i>
+                    退出登录
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主内容区 -->
+    <main class="main-container">
+        <!-- 面包屑导航 -->
+        <div class="breadcrumbs">
+            <a href="tasks.html">
+                <i class="fas fa-arrow-left"></i>
+                返回任务列表
+            </a>
+            <span>/</span>
+            <span>个人信息</span>
+        </div>
+
+        <!-- 账户信息卡片 -->
+        <section class="card">
+            <h2>
+                <i class="fas fa-id-card"></i>
+                账户信息
+            </h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span>用户名</span>
+                    <p id="detailUsername">-</p>
+                </div>
+                <div class="info-item">
+                    <span>邮箱</span>
+                    <p id="detailEmail">-</p>
+                </div>
+                <div class="info-item">
+                    <span>当前身份</span>
+                    <p>
+                        <span class="status-tag status-guest" id="roleStatusTag">
+                            <i class="fas fa-user"></i>
+                            身份加载中
+                        </span>
+                    </p>
+                </div>
+                <div class="info-item">
+                    <span>科研秘书编号</span>
+                    <p id="assistantId">-</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 身份认证卡片 -->
+        <section class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; margin-bottom: 20px;">
+                <h2>
+                    <i class="fas fa-shield-alt"></i>
+                    身份认证
+                </h2>
+                <span class="status-tag status-guest" id="roleStatusCompact">
+                    <i class="fas fa-user"></i>
+                    身份加载中
+                </span>
+            </div>
+            
+            <p class="hint">
+                填写真实的科研秘书信息完成身份认证。系统会验证工号与姓名是否匹配，并尝试连接邮箱，确保后续可以接收任务通知。
+            </p>
+
+            <form id="verifyForm">
+                <div class="form-group">
+                    <label for="employeeId">科研秘书工号</label>
+                    <div class="input-container">
+                        <i class="fas fa-id-badge"></i>
+                        <input type="text" id="employeeId" required placeholder="请输入您的科研秘书工号">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="assistantName">科研秘书姓名</label>
+                    <div class="input-container">
+                        <i class="fas fa-user-tag"></i>
+                        <input type="text" id="assistantName" required placeholder="请输入您的真实姓名">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="assistantEmail">邮箱地址</label>
+                    <div class="input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="assistantEmail" required placeholder="请输入您的邮箱地址">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="emailAppPassword">邮箱应用专用密码</label>
+                    <div class="input-container">
+                        <i class="fas fa-key"></i>
+                        <input type="password" id="emailAppPassword" required placeholder="请输入邮箱应用专用密码">
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" id="verifySubmitBtn">
+                    <i class="fas fa-check-circle"></i>
+                    提交认证
+                </button>
+            </form>
+
+            <div id="verifiedBanner" class="verified-banner hidden">
+                <i class="fas fa-check-double"></i>
+                <div>
+                    您已完成科研秘书认证，可以创建和管理科研任务。
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- 消息区域 -->
+    <div id="errorMessage" class="error-message"></div>
+    <div id="successMessage" class="success-message"></div>
+
+    <!-- 保留原有的外部JS文件引用 -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/user-detail.js"></script>
+</body>
+</html>

@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>注册 - DataHub 科研数据管理平台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* 背景动画效果 */
+        body::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(41, 196, 255, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(132, 0, 255, 0.05) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 80%, rgba(255, 77, 0, 0.05) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .register-card {
+            background: rgba(25, 25, 35, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            width: 100%;
+            max-width: 480px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5),
+                        0 0 0 1px rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .register-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6),
+                        0 0 0 1px rgba(255, 255, 255, 0.1);
+        }
+
+        .register-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #00c6ff, #0072ff, #00c6ff);
+            background-size: 200% 100%;
+            animation: shimmer 3s infinite linear;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .logo-icon {
+            font-size: 42px;
+            color: #00c6ff;
+            margin-bottom: 10px;
+            text-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 14px;
+            font-weight: 400;
+            color: #aaa;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #b0b0b0;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .input-container {
+            position: relative;
+        }
+
+        .input-container i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+            transition: color 0.3s;
+            z-index: 1;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 16px 16px 16px 48px;
+            background: rgba(20, 20, 30, 0.9) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #00c6ff;
+            box-shadow: 0 0 0 2px rgba(0, 198, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        input:focus + i, select:focus + i {
+            color: #00c6ff;
+        }
+
+        input::placeholder {
+            color: #666;
+        }
+
+        .password-strength {
+            height: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 3px;
+            margin-top: 8px;
+            overflow: hidden;
+        }
+
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            border-radius: 3px;
+            transition: width 0.3s ease, background-color 0.3s ease;
+        }
+
+        .strength-weak {
+            background-color: #ff4757;
+            width: 30%;
+        }
+
+        .strength-fair {
+            background-color: #ffa502;
+            width: 60%;
+        }
+
+        .strength-good {
+            background-color: #2ed573;
+            width: 85%;
+        }
+
+        .strength-strong {
+            background-color: #1e90ff;
+            width: 100%;
+        }
+
+        .password-hint {
+            font-size: 12px;
+            color: #888;
+            margin-top: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .password-hint i {
+            margin-right: 5px;
+            font-size: 10px;
+        }
+
+
+        .requirements {
+            background: rgba(0, 114, 255, 0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 3px solid #0072ff;
+        }
+
+        .requirements h3 {
+            font-size: 14px;
+            color: #b0b0b0;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .requirements h3 i {
+            margin-right: 8px;
+            color: #00c6ff;
+        }
+
+        .requirements ul {
+            list-style: none;
+            padding-left: 5px;
+        }
+
+        .requirements li {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+        }
+
+        .requirements li i {
+            margin-right: 8px;
+            font-size: 10px;
+            color: #888;
+        }
+
+        .requirements li.valid {
+            color: #2ed573;
+        }
+
+        .requirements li.valid i {
+            color: #2ed573;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #00b4e6 0%, #0066cc 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 7px 14px rgba(0, 114, 255, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .form-footer {
+            margin-top: 25px;
+            text-align: center;
+            font-size: 14px;
+            color: #888;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 20px;
+        }
+
+        .form-footer a {
+            color: #00c6ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s;
+            margin-left: 5px;
+        }
+
+        .form-footer a:hover {
+            color: #00b4e6;
+            text-decoration: underline;
+        }
+
+        .error-message {
+            background: rgba(255, 50, 50, 0.1);
+            border: 1px solid rgba(255, 50, 50, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 20px;
+            color: #ff6b6b;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .success-message {
+            background: rgba(46, 213, 115, 0.1);
+            border: 1px solid rgba(46, 213, 115, 0.3);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 20px;
+            color: #2ed573;
+            font-size: 14px;
+            text-align: center;
+            display: none;
+        }
+
+        .platform-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            color: #aaa;
+            padding: 10px;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .feature-item i {
+            margin-right: 8px;
+            color: #00c6ff;
+            font-size: 14px;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 520px) {
+            .register-card {
+                padding: 30px 25px;
+                max-width: 95%;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .platform-features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* 浮动粒子背景 */
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: float 15s infinite linear;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0) rotate(0deg); }
+            100% { transform: translateY(-1000px) rotate(720deg); }
+        }
+
+        .info-banner {
+            margin-top: 10px;
+            padding: 12px 14px;
+            border-radius: 10px;
+            background: rgba(0, 198, 255, 0.08);
+            border-left: 3px solid #00c6ff;
+            color: #b0d5ff;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+    </style>
+</head>
+<body>
+    <!-- 背景粒子 -->
+    <div class="particles" id="particles"></div>
+    
+    <div class="container">
+        <div class="register-card">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <h1>用户注册</h1>
+                <div class="subtitle">加入 DataHub 科研数据管理平台</div>
+            </div>
+            
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="username">用户名</label>
+                    <div class="input-container">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="username" name="username" required placeholder="请输入用户名（3-20个字符）">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">密码</label>
+                    <div class="input-container">
+                        <i class="fas fa-lock"></i>
+                        <input type="password" id="password" name="password" required placeholder="请输入密码（至少8位）">
+                    </div>
+                    <div class="password-strength">
+                        <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                    </div>
+                    <div class="password-hint" id="passwordHint">
+                        <i class="fas fa-info-circle"></i>
+                        <span>密码需包含字母和数字</span>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="user_email">邮箱</label>
+                    <div class="input-container">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="user_email" name="user_email" required placeholder="请输入有效邮箱地址">
+                    </div>
+                </div>
+                
+                <div class="info-banner">
+                    <i class="fas fa-info-circle"></i>
+                    注册后默认身份为游客，请登录后在“身份信息”页面完成科研秘书认证以获取更多权限。
+                </div>
+                
+                <div class="requirements">
+                    <h3><i class="fas fa-clipboard-check"></i> 注册要求</h3>
+                    <ul>
+                        <li id="reqUsername"><i class="fas fa-circle"></i> 用户名: 3-20个字符，可包含字母、数字和下划线</li>
+                        <li id="reqPassword"><i class="fas fa-circle"></i> 密码: 至少8位，包含字母和数字</li>
+                        <li id="reqEmail"><i class="fas fa-circle"></i> 邮箱: 必须是有效的邮箱地址</li>
+                        <li id="reqTerms"><i class="fas fa-circle"></i> 同意平台使用条款和隐私政策</li>
+                    </ul>
+                </div>
+                
+                <button type="submit" class="btn">
+                    <i class="fas fa-user-plus"></i> 创建账户
+                </button>
+            </form>           
+            
+            <div class="form-footer">
+                <p>已有账号？<a href="index.html">立即登录</a></p>
+                <p style="margin-top: 8px; font-size: 13px;">
+                    注册即表示同意 <a href="terms.html" style="color: #aaa;">服务条款</a> 和 <a href="privacy.html" style="color: #aaa;">隐私政策</a>
+                </p>
+            </div>
+            
+            <div id="errorMessage" class="error-message"></div>
+            <div id="successMessage" class="success-message"></div>
+        </div>
+    </div>
+
+    <script>
+        // 创建背景粒子效果
+        function createParticles() {
+            const particlesContainer = document.getElementById('particles');
+            const particleCount = 30;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                // 随机大小和位置
+                const size = Math.random() * 5 + 1;
+                const posX = Math.random() * 100;
+                const delay = Math.random() * 15;
+                const duration = Math.random() * 10 + 15;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}%`;
+                particle.style.animationDelay = `${delay}s`;
+                particle.style.animationDuration = `${duration}s`;
+                
+                particlesContainer.appendChild(particle);
+            }
+        }
+        
+        // 密码强度检查
+        function checkPasswordStrength(password) {
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            const passwordHint = document.getElementById('passwordHint');
+            
+            // 重置样式
+            strengthBar.className = 'password-strength-bar';
+            strengthBar.style.width = '0';
+            
+            if (password.length === 0) {
+                passwordHint.innerHTML = '<i class="fas fa-info-circle"></i><span>密码需包含字母和数字</span>';
+                passwordHint.style.color = '#888';
+                return;
+            }
+            
+            let strength = 0;
+            let hintText = '';
+            let hintColor = '';
+            
+            // 长度检查
+            if (password.length >= 8) strength++;
+            if (password.length >= 12) strength++;
+            
+            // 复杂度检查
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/\d/.test(password)) strength++;
+            if (/[^A-Za-z0-9]/.test(password)) strength++;
+            
+            // 设置强度条
+            if (strength <= 2) {
+                strengthBar.className = 'password-strength-bar strength-weak';
+                hintText = '密码强度：弱';
+                hintColor = '#ff4757';
+            } else if (strength <= 3) {
+                strengthBar.className = 'password-strength-bar strength-fair';
+                hintText = '密码强度：一般';
+                hintColor = '#ffa502';
+            } else if (strength <= 4) {
+                strengthBar.className = 'password-strength-bar strength-good';
+                hintText = '密码强度：良好';
+                hintColor = '#2ed573';
+            } else {
+                strengthBar.className = 'password-strength-bar strength-strong';
+                hintText = '密码强度：强';
+                hintColor = '#1e90ff';
+            }
+            
+            passwordHint.innerHTML = `<i class="fas fa-info-circle"></i><span>${hintText}</span>`;
+            passwordHint.style.color = hintColor;
+            
+            // 更新要求列表
+            updateRequirements();
+        }
+        
+        // 更新要求列表
+        function updateRequirements() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('user_email').value;
+            
+            // 用户名检查
+            const usernameReq = document.getElementById('reqUsername');
+            if (username.length >= 3 && username.length <= 20 && /^[a-zA-Z0-9_]+$/.test(username)) {
+                usernameReq.classList.add('valid');
+                usernameReq.innerHTML = '<i class="fas fa-check-circle"></i> 用户名: 符合要求';
+            } else {
+                usernameReq.classList.remove('valid');
+                usernameReq.innerHTML = '<i class="fas fa-circle"></i> 用户名: 3-20个字符，可包含字母、数字和下划线';
+            }
+            
+            // 密码检查
+            const passwordReq = document.getElementById('reqPassword');
+            const hasLetter = /[a-zA-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            if (password.length >= 8 && hasLetter && hasNumber) {
+                passwordReq.classList.add('valid');
+                passwordReq.innerHTML = '<i class="fas fa-check-circle"></i> 密码: 符合要求';
+            } else {
+                passwordReq.classList.remove('valid');
+                passwordReq.innerHTML = '<i class="fas fa-circle"></i> 密码: 至少8位，包含字母和数字';
+            }
+            
+            // 邮箱检查
+            const emailReq = document.getElementById('reqEmail');
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (emailPattern.test(email)) {
+                emailReq.classList.add('valid');
+                emailReq.innerHTML = '<i class="fas fa-check-circle"></i> 邮箱: 格式正确';
+            } else {
+                emailReq.classList.remove('valid');
+                emailReq.innerHTML = '<i class="fas fa-circle"></i> 邮箱: 必须是有效的邮箱地址';
+            }
+        }
+        
+        // 事件监听 - 保留UI验证功能
+        document.getElementById('password').addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+        });
+        
+        document.getElementById('username').addEventListener('input', updateRequirements);
+        document.getElementById('user_email').addEventListener('input', updateRequirements);
+        
+        // 初始化粒子效果
+        window.addEventListener('DOMContentLoaded', createParticles);
+    </script>
+    
+    <!-- 保留原有的外部JS文件引用 -->
+    <script src="js/api.js"></script>
+    <script src="js/register.js"></script>
+</body>
+</html>
