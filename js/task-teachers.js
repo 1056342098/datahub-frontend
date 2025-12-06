@@ -212,7 +212,7 @@ async function remindTeachers() {
 async function exportSubmissions() {
     try {
         const token = getToken();
-        const response = await fetch(`/api/tasks/${taskId}/submissions/export`, {
+        const response = await fetch(`${API_BASE_URL}/tasks/${taskId}/submissions/export`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`
