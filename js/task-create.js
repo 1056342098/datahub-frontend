@@ -120,11 +120,20 @@ async function handleSubmit(e) {
         return;
     }
 
+    // 获取并转换 deadline 格式
+    const deadlineInput = document.getElementById('deadline').value;
+    const deadline = formatDateTimeToISO(deadlineInput);
+    
+    if (!deadline) {
+        showError('请选择有效的截止日期');
+        return;
+    }
+
     const metadata = {
         task_name: document.getElementById('task_name').value,
         description: document.getElementById('description').value,
         dept_id: parseInt(document.getElementById('dept_id').value, 10),
-        deadline: document.getElementById('deadline').value
+        deadline: deadline
     };
 
     const formData = new FormData();
@@ -135,16 +144,27 @@ async function handleSubmit(e) {
 
     try {
         const token = getToken();
-        const url = isEditMode ? `/api/tasks/${taskId}` : '/api/tasks';
-        const response = await fetch(url, {
+        const url = isEditMode ? `/tasks/${taskId}` : '/tasks';
+        const response = await fetch(`${API_BASE_URL}${url}`, {
             method: isEditMode ? 'PUT' : 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`
+                // 注意：不要设置 Content-Type，让浏览器自动设置 multipart/form-data 的边界
             },
             body: formData
         });
 
-        const data = await response.json().catch(() => null);
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            // 如果响应不是 JSON，可能是 404 或其他错误
+            if (!response.ok) {
+                showError(`请求失败: ${response.status} ${response.statusText}`);
+                return;
+            }
+            throw jsonError;
+        }
 
         if (response.ok && data && data.success) {
             showSuccess(isEditMode ? '任务更新成功' : '任务创建成功');
@@ -152,10 +172,11 @@ async function handleSubmit(e) {
                 window.location.href = 'tasks.html';
             }, 1500);
         } else {
-            const msg = data?.error?.message || (isEditMode ? '更新任务失败' : '创建任务失败');
+            const msg = data?.error?.message || data?.message || (isEditMode ? '更新任务失败' : '创建任务失败');
             showError(msg);
         }
     } catch (error) {
+        console.error('创建任务错误:', error);
         showError(error.message || (isEditMode ? '更新任务失败' : '创建任务失败'));
     }
 }

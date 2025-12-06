@@ -414,6 +414,19 @@ function formatDateTimeLocal(dateTimeString) {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
 }
 
+// 将 datetime-local 格式转换为 ISO 8601 格式（用于提交到后端）
+function formatDateTimeToISO(dateTimeLocalString) {
+    if (!dateTimeLocalString) return null;
+    // datetime-local 格式: "YYYY-MM-DDTHH:mm"
+    // 转换为 ISO 8601 格式: "YYYY-MM-DDTHH:mm:ssZ"
+    const date = new Date(dateTimeLocalString);
+    if (isNaN(date.getTime())) {
+        return null;
+    }
+    // 转换为 ISO 8601 格式（UTC 时间）
+    return date.toISOString();
+}
+
 
 
 
