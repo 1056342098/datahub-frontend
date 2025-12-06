@@ -28,6 +28,35 @@ function saveUser(user) {
     localStorage.setItem('user', JSON.stringify(user));
 }
 
+// 错误代码到中文消息的映射
+const ERROR_MESSAGES = {
+    'USER_NOT_FOUND': '用户不存在',
+    'INVALID_CREDENTIALS': '用户名或密码错误',
+    'USER_EMAIL_ALREADY_EXISTS': '该邮箱已被注册',
+    'USER_NAME_ALREADY_EXISTS': '该用户名已被使用',
+    'ASSISTANT_NOT_FOUND': '科研秘书信息不存在',
+    'TASK_NOT_FOUND': '任务不存在',
+    'PERMISSION_DENIED': '权限不足，无法执行此操作',
+    'FILE_UPLOAD_ERROR': '文件上传失败',
+    'UPLOAD_DIR_ERROR': '上传目录错误',
+    'FILE_NOT_FOUND': '文件不存在',
+    'FILE_DELETE_ERROR': '文件删除失败',
+    'INVALID_EMAIL_ADDRESS': '邮箱地址格式不正确',
+    'MAIL_CONNECTION_ERROR': '邮件服务器连接失败',
+    'ASSISTANT_NOT_CONFIGURED': '科研秘书未配置',
+    'MAILBOX_CHECK_FAILED': '邮箱检查失败',
+    'EMAIL_SEND_FAILED': '邮件发送失败',
+    'MAIL_SERVER_CONNECTION_ERROR': '邮件服务器连接错误'
+};
+
+// 获取友好的错误消息
+function getErrorMessage(errorCode, defaultMessage) {
+    if (errorCode && ERROR_MESSAGES[errorCode]) {
+        return ERROR_MESSAGES[errorCode];
+    }
+    return defaultMessage || '操作失败，请稍后重试';
+}
+
 // 通用 API 请求函数
 async function apiRequest(url, options = {}) {
     const token = getToken();
@@ -47,15 +76,68 @@ async function apiRequest(url, options = {}) {
 
     try {
         const response = await fetch(`${API_BASE_URL}${url}`, config);
-        const data = await response.json();
+        
+        // 处理非JSON响应（如文件下载）
+        const contentType = response.headers.get('content-type');
+        if (contentType && !contentType.includes('application/json')) {
+            if (!response.ok) {
+                const errorMessage = getErrorMessage(null, '文件操作失败');
+                showErrorModal(errorMessage);
+                throw new Error(errorMessage);
+            }
+            return response;
+        }
+        
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            // JSON解析失败
+            const errorMessage = getErrorMessage(null, '服务器响应格式错误');
+            showErrorModal(errorMessage);
+            throw new Error(errorMessage);
+        }
 
+        // 处理HTTP错误状态码
         if (!response.ok) {
-            throw new Error(data.error?.message || '请求失败');
+            const errorCode = data.error?.code;
+            const errorMessage = getErrorMessage(errorCode, data.error?.message || data.message || '请求失败');
+            showErrorModal(errorMessage);
+            throw new Error(errorMessage);
+        }
+        
+        // 处理success为false的情况（根据Design.md的错误响应格式）
+        if (data.success === false) {
+            const errorCode = data.error?.code;
+            const errorMessage = getErrorMessage(errorCode, data.error?.message || data.message || '操作失败');
+            showErrorModal(errorMessage);
+            throw new Error(errorMessage);
         }
 
         return data;
     } catch (error) {
         console.error('API请求错误:', error);
+        
+        // 检查弹窗是否已经显示（避免重复显示）
+        const overlay = document.getElementById('errorModalOverlay');
+        const isModalShowing = overlay && overlay.classList.contains('show');
+        
+        // 如果是网络错误
+        if (error.name === 'TypeError' && error.message.includes('fetch')) {
+            if (!isModalShowing) {
+                showErrorModal('网络连接失败，请检查网络设置');
+            }
+        } 
+        // 如果错误消息已经显示过（在try块中已调用showErrorModal），不再重复显示
+        // 否则显示错误消息
+        else if (!isModalShowing) {
+            if (error.message) {
+                showErrorModal(error.message);
+            } else {
+                showErrorModal('操作失败，请稍后重试');
+            }
+        }
+        
         throw error;
     }
 }
@@ -98,16 +180,201 @@ function redirectToLogin() {
     window.location.href = 'index.html';
 }
 
-// 显示错误消息
-function showError(message) {
-    const errorDiv = document.getElementById('errorMessage');
-    if (errorDiv) {
-        errorDiv.textContent = message;
-        errorDiv.classList.add('show');
-        setTimeout(() => {
-            errorDiv.classList.remove('show');
-        }, 5000);
+// 创建弹窗容器（如果不存在）
+function ensureModalContainer() {
+    let modalContainer = document.getElementById('errorModalContainer');
+    if (!modalContainer) {
+        modalContainer = document.createElement('div');
+        modalContainer.id = 'errorModalContainer';
+        modalContainer.innerHTML = `
+            <div class="error-modal-overlay" id="errorModalOverlay">
+                <div class="error-modal">
+                    <div class="error-modal-header">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <h3>错误提示</h3>
+                    </div>
+                    <div class="error-modal-body">
+                        <p id="errorModalMessage"></p>
+                    </div>
+                    <div class="error-modal-footer">
+                        <button class="error-modal-btn" id="errorModalCloseBtn">确定</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modalContainer);
+        
+        // 添加样式
+        if (!document.getElementById('errorModalStyles')) {
+            const style = document.createElement('style');
+            style.id = 'errorModalStyles';
+            style.textContent = `
+                .error-modal-overlay {
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.6);
+                    backdrop-filter: blur(4px);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    z-index: 10000;
+                    animation: errorModalFadeIn 0.3s ease;
+                }
+                
+                .error-modal-overlay.show {
+                    display: flex;
+                }
+                
+                @keyframes errorModalFadeIn {
+                    from { opacity: 0; }
+                    to { opacity: 1; }
+                }
+                
+                @keyframes errorModalSlideUp {
+                    from {
+                        transform: translateY(50px);
+                        opacity: 0;
+                    }
+                    to {
+                        transform: translateY(0);
+                        opacity: 1;
+                    }
+                }
+                
+                .error-modal {
+                    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+                    border-radius: 16px;
+                    padding: 0;
+                    max-width: 450px;
+                    width: 90%;
+                    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                    animation: errorModalSlideUp 0.3s ease;
+                    overflow: hidden;
+                }
+                
+                .error-modal-header {
+                    background: linear-gradient(135deg, #ff4757 0%, #ff6348 100%);
+                    padding: 20px 24px;
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                    color: white;
+                }
+                
+                .error-modal-header i {
+                    font-size: 24px;
+                }
+                
+                .error-modal-header h3 {
+                    margin: 0;
+                    font-size: 18px;
+                    font-weight: 600;
+                }
+                
+                .error-modal-body {
+                    padding: 24px;
+                    color: #e0e0e0;
+                    min-height: 60px;
+                }
+                
+                .error-modal-body p {
+                    margin: 0;
+                    font-size: 15px;
+                    line-height: 1.6;
+                    word-wrap: break-word;
+                }
+                
+                .error-modal-footer {
+                    padding: 16px 24px;
+                    border-top: 1px solid rgba(255, 255, 255, 0.1);
+                    display: flex;
+                    justify-content: flex-end;
+                }
+                
+                .error-modal-btn {
+                    background: linear-gradient(135deg, #00c6ff 0%, #0072ff 100%);
+                    color: white;
+                    border: none;
+                    padding: 10px 24px;
+                    border-radius: 8px;
+                    font-size: 14px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                }
+                
+                .error-modal-btn:hover {
+                    background: linear-gradient(135deg, #00b4e6 0%, #0066cc 100%);
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+                }
+                
+                .error-modal-btn:active {
+                    transform: translateY(0);
+                }
+            `;
+            document.head.appendChild(style);
+        }
+        
+        // 绑定关闭事件
+        const overlay = document.getElementById('errorModalOverlay');
+        const closeBtn = document.getElementById('errorModalCloseBtn');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                hideErrorModal();
+            });
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    hideErrorModal();
+                }
+            });
+        }
+        
+        // ESC键关闭
+        document.addEventListener('keydown', (e) => {
+            const overlayEl = document.getElementById('errorModalOverlay');
+            if (e.key === 'Escape' && overlayEl && overlayEl.classList.contains('show')) {
+                hideErrorModal();
+            }
+        });
     }
+    return modalContainer;
+}
+
+// 显示错误弹窗
+function showErrorModal(message) {
+    ensureModalContainer();
+    const overlay = document.getElementById('errorModalOverlay');
+    const messageEl = document.getElementById('errorModalMessage');
+    
+    if (messageEl) {
+        messageEl.textContent = message || '发生未知错误';
+    }
+    
+    if (overlay) {
+        overlay.classList.add('show');
+    }
+}
+
+// 隐藏错误弹窗
+function hideErrorModal() {
+    const overlay = document.getElementById('errorModalOverlay');
+    if (overlay) {
+        overlay.classList.remove('show');
+    }
+}
+
+// 显示错误消息（保留向后兼容，但使用弹窗）
+function showError(message) {
+    showErrorModal(message);
 }
 
 // 显示成功消息
